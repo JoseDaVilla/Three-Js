@@ -1,87 +1,105 @@
 import * as THREE from 'three'
-import { Wireframe } from 'three/examples/jsm/Addons.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
 //* =========================================================
 //*                         SETUP
 //* =========================================================
 
-//* Canvas
 const canvas = document.querySelector('canvas.webgl')
-
-//* Scene
 const scene = new THREE.Scene()
-
-//* Sizes 
 const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
 
+const axesHelper = new THREE.AxesHelper()
+// scene.add(axesHelper)
+
+
+//* =========================================================
+//*                         TEXTURES
+//* =========================================================
+
+const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load('images/steel.jpg')
 
 //* =========================================================
 //*                         LIGHT
 //* =========================================================
 
-const ambientLight = new THREE.AmbientLight(0xffffff, .5)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
 scene.add(ambientLight)
 
-const pointLight = new THREE.PointLight('lightblue', 20)
-pointLight.position.set(1, 3, 1)
-scene.add(pointLight)
-
-
-//* =========================================================
-//*                         TEXTURE
-//* =========================================================
-
-const textureLoader = new THREE.TextureLoader()
-const bmo = textureLoader.load('/bmo.jpg')
-const finn = textureLoader.load('/finn.jpg')
-const jake = textureLoader.load('/jake.jpg')
-const steel = textureLoader.load('/steel.jpg')
-
-const pointLightHelper = new THREE.PointLightHelper(pointLight, .2)
-
-scene.add(pointLightHelper)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
+directionalLight.position.set(1, 1, 1)
+scene.add(directionalLight)
 
 //* =========================================================
-//*                         OBJECT
+//*                         FONTS
 //* =========================================================
 
-const material = new THREE.MeshStandardMaterial()
-material.shininess = 1000
-material.metalness = .45
-material.roughness = .75
-// material.matcap = steel
-// material.opacity = 0.5|
-// material.transparent = true
-material.side = THREE.DoubleSide
-material.flatShading = true
-const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(.5, 100, 100), material
+const fontLoader = new FontLoader()
+fontLoader.load(
+    './fonts/helvetiker_regular.typeface.json',
+    (font) => {
+        console.log('Font loaded successfully')
+
+        const textGeometry = new TextGeometry('Guaaosss', {
+            font: font,
+            size: 0.5,
+            height: 0.1,
+            depth: 0.1,
+            curveSegments: 3,
+            bevelEnabled: true,
+            bevelThickness: 0.03,
+            bevelSize: 0.02,
+            bevelOffset: 0,
+            bevelSegments: 3
+        })
+
+        textGeometry.center()
+
+        const textMaterial = new THREE.MeshMatcapMaterial({ color:'#378FAE',matcap: texture })
+
+        const text = new THREE.Mesh(textGeometry, textMaterial)
+        scene.add(text)
+        return text
+    },
+    undefined,
+    (error) => {
+        console.error('Error loading font:', error)
+    }
 )
 
-const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.5, 1.5), material
-)
-plane.position.set(2, 1, 0)
+//* =========================================================
+//*                         DONUTS
+//* =========================================================
 
-const torus = new THREE.Mesh(
-    new THREE.TorusGeometry(0.3, 0.1, 100, 100), material
-)
-torus.position.set(-2, 0, 0)
-scene.add(sphere, plane, torus)
+const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45)
+const donutMaterial = new THREE.MeshMatcapMaterial({matcap: texture})
+
+for (let i = 0; i < 200; i++) {
+    const donut = new THREE.Mesh(donutGeometry, donutMaterial)
+    const scale = Math.random()
+    donut.position.x = (Math.random() - 0.5) * 10
+    donut.position.y = (Math.random() - 0.5) * 10
+    donut.position.z = (Math.random() - 0.5) * 10
+    donut.rotation.x = Math.random() * Math.PI
+    donut.rotation.y = Math.random() * Math.PI
+    donut.scale.    set(scale,scale,scale)
+    scene.add(donut)
+}
+
 //* =========================================================
 //*                         CAMERA
 //* =========================================================
 
-//* Camera setup
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
-camera.position.set(0, 0, 3)
+const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height)
+camera.position.set(0, 0, 4)
 scene.add(camera)
 
-//* Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 
@@ -90,42 +108,24 @@ controls.enableDamping = true
 //* =========================================================
 
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    antialias: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-// Mejorar la calidad de las texturas
-jake.magFilter = THREE.LinearFilter // o THREE.NearestFilter
-jake.minFilter = THREE.LinearMipmapLinearFilter
-jake.generateMipmaps = true
-jake.anisotropy = renderer.capabilities.getMaxAnisotropy()
-
-// También puedes aplicar lo mismo a las otras texturas
-finn.magFilter = THREE.LinearFilter
-finn.minFilter = THREE.LinearMipmapLinearFilter
-finn.generateMipmaps = true
-finn.anisotropy = renderer.capabilities.getMaxAnisotropy()
-
-bmo.magFilter = THREE.LinearFilter
-bmo.minFilter = THREE.LinearMipmapLinearFilter
-bmo.generateMipmaps = true
-bmo.anisotropy = renderer.capabilities.getMaxAnisotropy()
+renderer.setClearColor(0x111111)
 
 //* =========================================================
 //*                      EVENT LISTENERS
 //* =========================================================
 
 window.addEventListener('resize', () => {
-    //* Update Sizes    
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
 
-    //* Update Camera
     camera.aspect = sizes.width / sizes.height
     camera.updateProjectionMatrix()
 
-    //* Update Renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
@@ -134,23 +134,9 @@ window.addEventListener('resize', () => {
 //*                   ANIMATION
 //* =========================================================
 
-const clock = new THREE.Clock()
-
 const tick = () => {
-    //* Update controls
-    const elapsedTime = clock.getElapsedTime()
-    sphere.rotation.x = elapsedTime * 0.1
-    plane.rotation.x = elapsedTime * 0.1
-    torus.rotation.x = elapsedTime * 0.1
-    sphere.rotation.y = elapsedTime * 0.15
-    plane.rotation.y = elapsedTime * 0.15
-    torus.rotation.y = elapsedTime * 0.15
     controls.update()
-
-    //* Render
     renderer.render(scene, camera)
-
-    //* Call next frame
     window.requestAnimationFrame(tick)
 }
 
