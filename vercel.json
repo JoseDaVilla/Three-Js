@@ -1,0 +1,15 @@
+{
+    "routes": [
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/fonts/(.*)",
+            "dest": "/public/fonts/$1"
+        },
+        {
+            "src": "/images/(.*)",
+            "dest": "/public/images/$1"
+        }
+    ]
+}

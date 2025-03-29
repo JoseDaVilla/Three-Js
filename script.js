@@ -23,7 +23,7 @@ const axesHelper = new THREE.AxesHelper()
 //* =========================================================
 
 const textureLoader = new THREE.TextureLoader()
-const texture = textureLoader.load('images/steel.jpg')
+const texture = textureLoader.load('/images/steel.jpg')
 
 //* =========================================================
 //*                         LIGHT
@@ -42,7 +42,7 @@ scene.add(directionalLight)
 
 const fontLoader = new FontLoader()
 fontLoader.load(
-    './fonts/helvetiker_regular.typeface.json',
+    '/fonts/helvetiker_regular.typeface.json',
     (font) => {
         console.log('Font loaded successfully')
 
